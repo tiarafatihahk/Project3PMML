@@ -29,8 +29,8 @@ MODEL_FILENAME = 'best_random_forest_model.pkl'
 
 # Fitur yang digunakan
 FEATURE_ORDER = [
-    'num__login_attempts','num__failed_logins','num__ip_reputation_score',
-    'num__network_packet_size','cat__unusual_time_access_Tidak',
+    'num_login_attempts','num__failed_logins','num__ip_reputation_score',
+    'num_network_packet_size','cat__unusual_time_access_Tidak',
     'cat__unusual_time_access_Ya','cat__browser_type_Chrome',
     'cat__browser_type_Firefox','cat__protocol_type_TCP',
     'cat__protocol_type_UDP','cat__encryption_used_TLS'
