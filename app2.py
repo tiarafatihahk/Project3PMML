@@ -17,18 +17,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# Judul dan deskripsi dari presentasi Anda
+# Judul dan deskripsi
 st.title("🛡️ Intrusion Detection System (IDS) Dashboard")
 st.markdown("""
 Selamat datang di Dashboard IDS untuk E-Commerce UKM. Aplikasi ini membantu mendeteksi aktivitas jaringan yang mencurigakan atau berbahaya secara real-time untuk melindungi bisnis Anda[cite: 4, 7].
 Masukkan parameter aktivitas jaringan di sidebar kiri dan klik tombol "Analisis Aktivitas".
 """)
 
-# --- SESUAIKAN BAGIAN INI DENGAN PROYEK ANDA ---
+# --- NAMA FILE MODEL -------
 MODEL_FILENAME = 'best_random_forest_model.pkl'
 
-# Ganti daftar ini dengan fitur dan urutan yang sama persis seperti saat training model IDS Anda.
-# Saya menggunakan contoh fitur yang umum untuk kasus ini.
+# Fitur yang digunakan
 FEATURE_ORDER = [
     'num__login_attempts','num__failed_logins','num__ip_reputation_score',
     'num__network_packet_size','cat__unusual_time_access_Tidak',
@@ -112,13 +111,13 @@ if model:
     st.sidebar.header("Input Parameter Aktivitas Jaringan:")
     user_inputs = {}
 
-    # Input Fields (sesuaikan dengan fitur Anda)
+    # Input Fields
     user_inputs['login_attempts'] = st.sidebar.number_input("Jumlah Percobaan Login (dalam 5 menit terakhir)", min_value=0, value=3, step=1)
     user_inputs['failed_logins'] = st.sidebar.number_input("Jumlah Kegagalan Login (dalam 5 menit terakhir)", min_value=0, value=1, step=1)
     user_inputs['ip_reputation_score'] = st.sidebar.slider("Skor Reputasi IP (0=Buruk, 100=Baik)", 0, 100, 80)
     user_inputs['network_packet_size'] = st.sidebar.number_input("Ukuran Paket Jaringan Rata-rata (KB)", min_value=0.0, value=1.5, step=0.1, format="%.2f")
 
-    # Categorical Features (perlu di-encode)
+    # Categorical Features
     unusual_time_map = {"Tidak": 0, "Ya": 1}
     user_inputs['unusual_time_access'] = unusual_time_map[st.sidebar.radio("Akses di Waktu Tidak Biasa?", ("Tidak", "Ya"))]
 
