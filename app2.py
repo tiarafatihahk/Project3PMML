@@ -25,7 +25,7 @@ Masukkan parameter aktivitas jaringan di sidebar kiri dan klik tombol "Analisis 
 """)
 
 # --- SESUAIKAN BAGIAN INI DENGAN PROYEK ANDA ---
-MODEL_FILENAME = 'model_ids_final.pkl'
+MODEL_FILENAME = 'best_random_forest_model.pkl'
 
 # Ganti daftar ini dengan fitur dan urutan yang sama persis seperti saat training model IDS Anda.
 # Saya menggunakan contoh fitur yang umum untuk kasus ini.
