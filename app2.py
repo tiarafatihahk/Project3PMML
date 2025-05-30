@@ -30,11 +30,22 @@ MODEL_FILENAME = 'best_random_forest_model.pkl'
 # Ganti daftar ini dengan fitur dan urutan yang sama persis seperti saat training model IDS Anda.
 # Saya menggunakan contoh fitur yang umum untuk kasus ini.
 FEATURE_ORDER = [
-    'network_packet_size', 'login_attempts', 'ip_reputation_score',
-    'failed_logins', 'unusual_time_access', 'browser_type_Chrome', 
-    'browser_type_Edge', 'browser_type_Firefox', 'browser_type_Safari',
-    'browser_type_Unknown', 'protocol_type_ICMP', 'protocol_type_TCP',
-    'protocol_type_UDP', 'encryption_used_AES', 'encryption_used_DES', 'encryption_used_unencrypted'
+    'network_packet_size', 
+    'login_attempts', 
+    'ip_reputation_score',
+    'failed_logins', 
+    'unusual_time_access', 
+    'browser_type_Chrome', 
+    'browser_type_Edge', 
+    'browser_type_Firefox', 
+    'browser_type_Safari',
+    'browser_type_Unknown', 
+    'protocol_type_ICMP', 
+    'protocol_type_TCP',
+    'protocol_type_UDP', 
+    'encryption_used_AES', 
+    'encryption_used_DES', 
+    'encryption_used_unencrypted'
 ]
 # ----------------------------------------------------
 
