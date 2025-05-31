@@ -1,6 +1,6 @@
-# IDS Dashboard for E-Commerce (Capstone Project)
+# IDS Dashboard for E-Commerce - by Capstone Project Machine Learning of Group 3
 
-Ini adalah prototipe dashboard Intrusion Detection System (IDS) yang dibangun menggunakan Streamlit dan model Machine Learning (Random Forest) untuk mendeteksi aktivitas jaringan yang mencurigakan. Proyek ini merupakan bagian dari Capstone Project Machine Learning Kelompok 3.
+Berikut ini merupakan prototipe dashboard Intrusion Detection System (IDS) yang dibangun menggunakan Streamlit dan model Machine Learning (Random Forest) untuk mendeteksi aktivitas jaringan yang mencurigakan.
 
 ## 🚀 Fitur
 - Antarmuka untuk input parameter aktivitas jaringan.
