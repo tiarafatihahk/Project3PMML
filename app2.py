@@ -1,5 +1,5 @@
 # ======================================================================================
-# app2.py - VERSI FINAL YANG SUDAH DIPERBAIKI
+# app.py - VERSI FINAL DENGAN 12 FITUR YANG BENAR
 # ======================================================================================
 import streamlit as st
 import pandas as pd
@@ -9,62 +9,41 @@ import os
 import datetime
 
 # ======================================================================================
-# KONFIGURASI PUSAT (Hanya bagian ini yang mungkin perlu Anda sesuaikan di masa depan)
+# KONFIGURASI PUSAT - Sesuai dengan output notebook Anda
 # ======================================================================================
 
 MODEL_FILENAME = 'best_random_forest_model.pkl'
 
-# Definisikan fitur-fitur ASLI Anda SEBELUM di-one-hot-encode
-NUMERIC_FEATURES = [
-    'network_packet_size',
-    'login_attempts',
-    'ip_reputation_score',
-    'failed_logins'
+# INI ADALAH DAFTAR 12 FITUR YANG PASTI DAN BENAR DARI NOTEBOOK ANDA
+FEATURE_ORDER = [
+    'num__login_attempts',
+    'num__failed_logins',
+    'num__ip_reputation_score',
+    'num__network_packet_size',
+    'cat__unusual_time_access_Tidak',
+    'cat__unusual_time_access_Ya',
+    'cat__browser_type_Chrome',
+    'cat__browser_type_Firefox',
+    'cat__protocol_type_TCP',
+    'cat__protocol_type_UDP',
+    'cat__encryption_used_TLS',
+    'cat__encryption_used_Tidak Ada',
 ]
 
-# Definisikan fitur kategorikal dan semua kemungkinan nilainya
-CATEGORICAL_FEATURES_MAP = {
-    'unusual_time_access': ['Tidak', 'Ya'], # Ini akan menjadi 1 fitur biner
-    'browser_type': ['Chrome', 'Edge', 'Firefox', 'Safari', 'Unknown'],
-    'protocol_type': ['ICMP', 'TCP', 'UDP'],
-    'encryption_used': ['AES', 'DES', 'unencrypted']
-}
-
-# Fungsi untuk membuat daftar fitur yang sudah di-one-hot-encode secara otomatis
-def generate_feature_order():
-    feature_order = NUMERIC_FEATURES.copy()
-    # 'unusual_time_access' direpresentasikan sebagai satu fitur biner (0 atau 1)
-    feature_order.append('unusual_time_access') 
-    
-    # Buat nama fitur one-hot-encoded
-    for cat, values in CATEGORICAL_FEATURES_MAP.items():
-        if cat != 'unusual_time_access': # 'unusual_time_access' sudah ditangani
-            for value in values:
-                feature_order.append(f"{cat}_{value}")
-    
-    return feature_order
-
-# Hasilkan FEATURE_ORDER secara dinamis
-FEATURE_ORDER = generate_feature_order()
-
 # ======================================================================================
-# FUNGSI-FUNGSI UTAMA
+# FUNGSI UTAMA
 # ======================================================================================
 
 @st.cache_resource
 def load_model(model_path):
     if not os.path.exists(model_path):
-        st.error(f"File model '{model_path}' tidak ditemukan. Pastikan file berada di folder yang sama.")
+        st.error(f"File model '{model_path}' tidak ditemukan.")
         return None
     try:
         model = joblib.load(model_path)
-        # Verifikasi jumlah fitur saat model dimuat
+        # Verifikasi terakhir untuk memastikan
         if model.n_features_in_ != len(FEATURE_ORDER):
-            st.error(
-                f"ERROR KONFIGURASI: Model mengharapkan {model.n_features_in_} fitur, "
-                f"tetapi konfigurasi aplikasi menghasilkan {len(FEATURE_ORDER)} fitur. "
-                f"Periksa daftar NUMERIC_FEATURES dan CATEGORICAL_FEATURES_MAP di kode."
-            )
+            st.error(f"FATAL: Model butuh {model.n_features_in_} fitur, tapi FEATURE_ORDER hanya punya {len(FEATURE_ORDER)}.")
             return None
         return model
     except Exception as e:
@@ -80,46 +59,44 @@ if 'activity_log' not in st.session_state:
 
 st.set_page_config(page_title="IDS Dashboard", page_icon="🛡️", layout="wide")
 st.title("🛡️ Intrusion Detection System (IDS) Dashboard")
-st.markdown("Aplikasi ini menggunakan model Machine Learning untuk mendeteksi aktivitas jaringan yang mencurigakan.")
 
 model = load_model(MODEL_FILENAME)
 
 if model:
     st.sidebar.header("Input Parameter Aktivitas Jaringan:")
     
-    # Buat dictionary untuk menampung pilihan pengguna
+    # Kumpulkan pilihan pengguna di sini
+    # Hanya minta input untuk fitur ASLI (sebelum di-encode)
     user_selections = {}
+    user_selections['num__login_attempts'] = st.sidebar.number_input("Jumlah Percobaan Login", value=3)
+    user_selections['num__failed_logins'] = st.sidebar.number_input("Jumlah Kegagalan Login", value=1)
+    user_selections['num__ip_reputation_score'] = st.sidebar.slider("Skor Reputasi IP", 0, 100, 80)
+    user_selections['num__network_packet_size'] = st.sidebar.number_input("Ukuran Paket Jaringan (KB)", value=1.5)
+    
+    # Opsi HARUS SAMA dengan yang ada di nama fitur Anda
+    user_selections['cat__unusual_time_access'] = st.sidebar.radio("Akses di Waktu Tidak Biasa?", ("Tidak", "Ya"))
+    user_selections['cat__browser_type'] = st.sidebar.selectbox("Tipe Browser", ["Chrome", "Firefox"]) # Hanya ada 2 opsi ini di model Anda
+    user_selections['cat__protocol_type'] = st.sidebar.selectbox("Tipe Protokol", ["TCP", "UDP"]) # Hanya ada 2 opsi ini
+    user_selections['cat__encryption_used'] = st.sidebar.selectbox("Tipe Enkripsi", ["TLS", "Tidak Ada"]) # Hanya ada 2 opsi ini
 
-    # Buat input untuk fitur numerik
-    for feature in NUMERIC_FEATURES:
-        user_selections[feature] = st.sidebar.number_input(f"{feature.replace('_', ' ').title()}", value=0.0, step=1.0)
-
-    # Buat input untuk fitur kategorikal
-    for feature, options in CATEGORICAL_FEATURES_MAP.items():
-        if feature == 'unusual_time_access':
-            user_selections[feature] = st.sidebar.radio("Akses di Waktu Tidak Biasa?", options, index=0)
-        else:
-            user_selections[feature] = st.sidebar.selectbox(f"{feature.replace('_', ' ').title()}", options=options)
-
-    # Tombol Analisis
     if st.sidebar.button("Analisis Aktivitas", type="primary", use_container_width=True):
         
-        # Lakukan One-Hot Encoding manual berdasarkan pilihan pengguna
+        # Siapkan dictionary final untuk input model
         final_model_inputs = {}
+        
+        # Proses input untuk model
         for feature in FEATURE_ORDER:
-            if feature in NUMERIC_FEATURES:
+            # Fitur numerik
+            if feature.startswith('num__'):
                 final_model_inputs[feature] = user_selections[feature]
-            elif feature == 'unusual_time_access':
-                # 'unusual_time_access' menjadi 1 fitur biner (0 atau 1)
-                final_model_inputs[feature] = 1 if user_selections['unusual_time_access'] == 'Ya' else 0
+            # Fitur kategorikal
+            elif feature.startswith('cat__'):
+                # Pisahkan nama fitur asli dan nilainya (misal: 'cat__browser_type' dan 'Chrome')
+                base_feature_name, value = feature.rsplit('_', 1) 
+                # Cek apakah pilihan pengguna cocok dengan nilai fitur saat ini
+                final_model_inputs[feature] = 1 if user_selections[base_feature_name] == value else 0
             else:
-                # Untuk fitur one-hot lainnya
-                # Cek apakah fitur ini adalah bagian dari fitur kategorikal yang ada
-                base_cat, value = feature.rsplit('_', 1)
-                if base_cat in user_selections:
-                    final_model_inputs[feature] = 1 if user_selections[base_cat] == value else 0
-                else:
-                    final_model_inputs[feature] = 0 # Safety net
+                final_model_inputs[feature] = 0 # Safety net
 
         # Buat input array
         input_array = np.array([final_model_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
@@ -128,7 +105,6 @@ if model:
         prediction = model.predict(input_array)
         prediction_proba = model.predict_proba(input_array)
         
-        # Tampilkan hasil
         is_threat = (prediction[0] == 1)
         st.subheader("Hasil Analisis:")
         if is_threat:
@@ -137,13 +113,5 @@ if model:
         else:
             st.success("✅ Aktivitas Jaringan Terlihat Normal.", icon="👍")
             st.metric("Tingkat Kepercayaan Normal", f"{prediction_proba[0][0]*100:.2f}%")
-
-        # Log aktivitas (opsional)
-        log_entry = {"Waktu": datetime.datetime.now().strftime('%H:%M:%S'), "Status": "Ancaman" if is_threat else "Normal", "Confidence": f"{max(prediction_proba[0])*100:.2f}%"}
-        st.session_state.activity_log.insert(0, log_entry)
-        st.write("---")
-        st.write("Log Aktivitas Terbaru:")
-        st.dataframe(pd.DataFrame(st.session_state.activity_log), use_container_width=True)
-
 else:
-    st.warning("Pastikan file model ada dan konfigurasi fitur sudah benar untuk memulai.")
+    st.error("Aplikasi tidak bisa berjalan. Periksa log di atas.")
