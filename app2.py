@@ -116,7 +116,7 @@ if 'activity_log' not in st.session_state:
 # ======================================================================================
 # ANTARMUKA PENGGUNA (UI) - SIDEBAR INPUT
 # ======================================================================================
-model = load_model(MODEL_FILENAME)
+model = load_model(best_random_forest_model.pkl)
 
 if model:
     st.sidebar.header("Input Parameter Aktivitas Jaringan:")
@@ -148,9 +148,78 @@ if model:
     user_inputs['encryption_used'] = encryption_map.get(selected_encryption, len(encryption_options)-1)
 
     # Tombol Analisis
-    if st.sidebar.button("Analisis Aktivitas", type="primary", use_container_width=True):
-        # Susun input sesuai urutan fitur model
-        input_array = np.array([user_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
+
+if st.sidebar.button("Analisis Aktivitas", type="primary", use_container_width=True):
+    final_model_inputs = {}
+
+    # 3. Looping melalui FEATURE_ORDER dan bangun input yang benar
+    for feature in FEATURE_ORDER:
+        # Untuk fitur numerik, salin nilainya langsung
+        if feature in ['network_pacekt_data', 'login_attempts', 'ip_reputation_score', 
+                      'failed_logins', 'unusual_time_access', 'browser_type_Chrome', 
+                      'browser_type_Edge','browser_type_Firefox', 'browser_type_Safari',
+                      'browser_type_Unknown', 'protocol_type_ICMP', 'protocol_type_TCP', 
+                      'protocol_type_UDP', 'encryption_used_AES', 'encryption_used_DES', 
+                      'encryption_used_unencrypted'
+                      ]: # Disesuaikan dengan fitur numerik
+            final_model_inputs[feature] = user_inputs.get(feature, 0) # .get untuk keamanan
+
+        # Untuk fitur yang di-encode dari 'browser_type'
+        elif 'browser_type_' in feature:
+            # Dapatkan nama browser dari nama fitur (misal: 'Chrome' dari 'browser_type_Chrome')
+            browser_name = feature.split('browser_type_')[1]
+            # Jika pilihan pengguna sama dengan nama browser ini, beri nilai 1, jika tidak 0
+            final_model_inputs[feature] = 1 if selected_browser == browser_name else 0
+
+        # Untuk fitur yang di-encode dari 'protocol_type'
+        elif 'protocol_type_' in feature:
+            protocol_name = feature.split('protocol_type_')[1]
+            final_model_inputs[feature] = 1 if selected_protocol == protocol_name else 0
+            
+        # Untuk fitur yang di-encode dari 'encryption_used'
+        elif 'encryption_used_' in feature:
+            encryption_name = feature.split('encryption_used_')[1]
+            final_model_inputs[feature] = 1 if selected_encryption == encryption_name else 0
+
+        # Untuk fitur biner seperti 'unusual_time_access'
+        elif 'unusual_time_access' in feature: # Asumsi fitur one-hotnya 'unusual_time_access_Ya' dan 'unusual_time_access_Tidak'
+             # 'user_inputs['unusual_time_access']' sudah berisi 0 atau 1 dari radio button
+            is_yes_feature = 'Ya' in feature 
+            final_model_inputs[feature] = 1 if (user_inputs['unusual_time_access'] == 1 and is_yes_feature) else \
+                                          1 if (user_inputs['unusual_time_access'] == 0 and not is_yes_feature) else 0
+
+        # Tambahkan logika 'elif' lain di sini jika ada fitur kategorikal lain yang di-encode
+        
+        else:
+             # Default jika ada fitur yang terlewat, beri nilai 0
+             final_model_inputs[feature] = 0
+
+    # 4. Buat input_array dari dictionary yang sudah benar formatnya
+    input_array = np.array([final_model_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
+    
+    # --- SISA KODE PREDIKSI DAN TAMPILAN TETAP SAMA ---
+
+    # Melakukan prediksi
+    prediction = model.predict(input_array)
+    prediction_proba = model.predict_proba(input_array)
+
+    st.subheader("Hasil Prediksi:")
+    if prediction[0] == 1: # Diasumsikan 1 adalah ancaman
+        st.error("🔴 Terdeteksi Potensi Ancaman!", icon="🚨")
+        st.metric(label="Tingkat Kepercayaan Ancaman", value=f"{prediction_proba[0][1]*100:.2f}%")
+        st.warning("""
+        **Rekomendasi Tindakan:**
+        - Segera verifikasi log dari sumber yang mencurigakan.
+        - Pertimbangkan untuk memblokir alamat IP sumber jika aktivitas terkonfirmasi berbahaya.
+        - Analisis jenis serangan untuk perbaikan sistem keamanan.
+        """)
+    else: # Diasumsikan 0 adalah normal
+        st.success("✅ Aktivitas Jaringan Terlihat Normal.", icon="👍")
+        st.metric(label="Tingkat Kepercayaan Normal", value=f"{prediction_proba[0][0]*100:.2f}%")
+        st.info("Tidak ada tindakan segera yang diperlukan. Sistem akan terus memantau aktivitas.")
+
+    st.subheader("Detail Input (Setelah Encoding):")
+    st.dataframe(pd.DataFrame([final_model_inputs]), use_container_width=True)
 
         # Prediksi
         prediction = model.predict(input_array)
