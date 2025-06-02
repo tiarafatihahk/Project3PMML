@@ -20,8 +20,7 @@ FEATURE_ORDER = [
     'num__failed_logins',
     'num__ip_reputation_score',
     'num__network_packet_size',
-    'cat__unusual_time_access_Tidak',
-    'cat__unusual_time_access_Ya',
+    'cat__unusual_time_access',
     'cat__browser_type_Chrome',
     'cat__browser_type_Firefox',
     'cat__browser_type_Edge',
@@ -32,10 +31,7 @@ FEATURE_ORDER = [
     'cat__protocol_type_ICMP',
     'cat__encryption_used_AES',
     'cat__encryption_used_DES',
-    'cat__encryption_used_None',
-    '18',
-    '19',
-    '20'
+    'cat__encryption_used_None'
 ]
 
 # ======================================================================================
