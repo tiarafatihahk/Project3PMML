@@ -9,12 +9,12 @@ import os
 import datetime
 
 # ======================================================================================
-# KONFIGURASI PUSAT - Sesuai dengan output notebook Anda
+# KONFIGURASI PUSAT
 # ======================================================================================
 
 MODEL_FILENAME = 'best_random_forest_model (2).pkl'
 
-# INI ADALAH DAFTAR 12 FITUR YANG PASTI DAN BENAR DARI NOTEBOOK ANDA
+# INI ADALAH DAFTAR 17 FITUR YANG PASTI DAN BENAR DARI NOTEBOOK ANDA
 FEATURE_ORDER = [
     'num__login_attempts',
     'num__failed_logins',
@@ -24,10 +24,18 @@ FEATURE_ORDER = [
     'cat__unusual_time_access_Ya',
     'cat__browser_type_Chrome',
     'cat__browser_type_Firefox',
+    'cat__browser_type_Edge',
+    'cat__browser_type_Safari',
+    'cat__browser_type_Unknown',
     'cat__protocol_type_TCP',
     'cat__protocol_type_UDP',
-    'cat__encryption_used_TLS',
-    'cat__encryption_used_Tidak Ada',
+    'cat__protocol_type_ICMP',
+    'cat__encryption_used_AES',
+    'cat__encryption_used_DES',
+    'cat__encryption_used_None',
+    '18',
+    '19',
+    '20'
 ]
 
 # ======================================================================================
@@ -68,16 +76,16 @@ if model:
     # Kumpulkan pilihan pengguna di sini
     # Hanya minta input untuk fitur ASLI (sebelum di-encode)
     user_selections = {}
-    user_selections['num__login_attempts'] = st.sidebar.number_input("Jumlah Percobaan Login", value=3)
-    user_selections['num__failed_logins'] = st.sidebar.number_input("Jumlah Kegagalan Login", value=1)
-    user_selections['num__ip_reputation_score'] = st.sidebar.slider("Skor Reputasi IP", 0, 100, 80)
-    user_selections['num__network_packet_size'] = st.sidebar.number_input("Ukuran Paket Jaringan (KB)", value=1.5)
+    user_selections['num__login_attempts'] = st.sidebar.number_input("Jumlah Percobaan Login", value=4)
+    user_selections['num__failed_logins'] = st.sidebar.number_input("Jumlah Kegagalan Login", value=2)
+    user_selections['num__ip_reputation_score'] = st.sidebar.slider("Skor Reputasi IP", 0, 100, 35)
+    user_selections['num__network_packet_size'] = st.sidebar.number_input("Ukuran Paket Jaringan (KB)", value=500)
     
     # Opsi HARUS SAMA dengan yang ada di nama fitur Anda
     user_selections['cat__unusual_time_access'] = st.sidebar.radio("Akses di Waktu Tidak Biasa?", ("Tidak", "Ya"))
-    user_selections['cat__browser_type'] = st.sidebar.selectbox("Tipe Browser", ["Chrome", "Firefox"]) # Hanya ada 2 opsi ini di model Anda
-    user_selections['cat__protocol_type'] = st.sidebar.selectbox("Tipe Protokol", ["TCP", "UDP"]) # Hanya ada 2 opsi ini
-    user_selections['cat__encryption_used'] = st.sidebar.selectbox("Tipe Enkripsi", ["TLS", "Tidak Ada"]) # Hanya ada 2 opsi ini
+    user_selections['cat__browser_type'] = st.sidebar.selectbox("Tipe Browser", ["Chrome", "Firefox", "Edge", "Safari", "Unknown"]) # Hanya ada 2 opsi ini di model Anda
+    user_selections['cat__protocol_type'] = st.sidebar.selectbox("Tipe Protokol", ["TCP", "UDP", "ICMP"]) # Hanya ada 2 opsi ini
+    user_selections['cat__encryption_used'] = st.sidebar.selectbox("Tipe Enkripsi", ["AES", "DES", "None"]) # Hanya ada 2 opsi ini
 
     if st.sidebar.button("Analisis Aktivitas", type="primary", use_container_width=True):
         
