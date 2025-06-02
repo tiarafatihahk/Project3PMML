@@ -87,24 +87,38 @@ if model:
         
         # Siapkan dictionary final untuk input model
         final_model_inputs = {}
-        
+
         # Proses input untuk model
         for feature in FEATURE_ORDER:
-            # Fitur numerik
-            if feature.startswith('num__'):
-                final_model_inputs[feature] = user_selections[feature]
-            # Fitur kategorikal
-            elif feature.startswith('cat__'):
-                # Pisahkan nama fitur asli dan nilainya (misal: 'cat__browser_type' dan 'Chrome')
-                base_feature_name, value = feature.rsplit('_', 1) 
-                # Cek apakah pilihan pengguna cocok dengan nilai fitur saat ini
-                final_model_inputs[feature] = 1 if user_selections[base_feature_name] == value else 0
-            else:
-                final_model_inputs[feature] = 0 # Safety net
+    # Fitur numerik (sudah benar)
+        if feature.startswith('num__'):
+                final_model_inputs[feature] = user_selections.get(feature, 0) # Menggunakan .get() lebih aman
 
-        # Buat input array
-        input_array = np.array([final_model_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
+    # TANGANI KASUS KHUSUS UNTUK FITUR BINER INI
+            elif feature == 'cat__unusual_time_access':
+        # Ubah input "Ya"/"Tidak" menjadi 1/0
+                final_model_inputs[feature] = 1 if user_selections.get('cat__unusual_time_access') == "Ya" else 0
         
+    # Fitur kategorikal one-hot-encoded lainnya (setelah kasus khusus ditangani)
+            elif feature.startswith('cat__'):
+                try:
+            # Pisahkan nama fitur asli dan nilainya
+                    base_feature_name, value = feature.rsplit('_', 1)
+            
+            # Cek apakah pilihan pengguna cocok dengan nilai fitur saat ini
+                user_choice = user_selections.get(base_feature_name)
+                final_model_inputs[feature] = 1 if user_choice == value else 0
+            except ValueError:
+            # Safety net jika ada fitur cat__ lain yang tidak sesuai format
+                st.warning(f"Format fitur '{feature}' tidak dikenali. Diatur ke 0.")
+                final_model_inputs[feature] = 0
+            
+        else:
+            final_model_inputs[feature] = 0 # Safety net untuk fitur tak dikenal
+
+# Buat input array (sudah benar)
+    input_array = np.array([final_model_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
+     
         # Prediksi
         prediction = model.predict(input_array)
         prediction_proba = model.predict_proba(input_array)
