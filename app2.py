@@ -12,7 +12,7 @@ import datetime
 # KONFIGURASI PUSAT
 # ======================================================================================
 
-MODEL_FILENAME = 'best_random_forest_model.pkl'
+MODEL_FILENAME = 'best_random_forest_model(1).pkl'
 
 # INI ADALAH DAFTAR 17 FITUR YANG PASTI DAN BENAR DARI NOTEBOOK ANDA
 FEATURE_ORDER = [
