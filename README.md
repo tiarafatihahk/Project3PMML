@@ -6,7 +6,7 @@ Berikut ini merupakan prototipe dashboard Intrusion Detection System (IDS) yang 
 - Antarmuka untuk input parameter aktivitas jaringan.
 - Prediksi real-time (Normal / Potensi Ancaman) menggunakan model yang sudah dilatih.
 - Dashboard log aktivitas untuk memantau analisis terbaru.
-- (Opsional) Sistem notifikasi via email untuk peringatan dini.
+- Sistem notifikasi via email untuk peringatan dini.
 
 ## 🛠️ Cara Menjalankan Secara Lokal
 
