@@ -90,35 +90,31 @@ if model:
 
         # Proses input untuk model
         for feature in FEATURE_ORDER:
-    # Fitur numerik (sudah benar)
-        if feature.startswith('num__'):
-                final_model_inputs[feature] = user_selections.get(feature, 0) # Menggunakan .get() lebih aman
+            # Fitur numerik
+            if feature.startswith('num__'):
+                final_model_inputs[feature] = user_selections.get(feature, 0)
 
-    # TANGANI KASUS KHUSUS UNTUK FITUR BINER INI
+            # Menangani kasus khusus untuk fitur biner 'unusual_time_access'
             elif feature == 'cat__unusual_time_access':
-        # Ubah input "Ya"/"Tidak" menjadi 1/0
                 final_model_inputs[feature] = 1 if user_selections.get('cat__unusual_time_access') == "Ya" else 0
-        
-    # Fitur kategorikal one-hot-encoded lainnya (setelah kasus khusus ditangani)
+            
+            # Fitur kategorikal one-hot-encoded lainnya
             elif feature.startswith('cat__'):
                 try:
-            # Pisahkan nama fitur asli dan nilainya
                     base_feature_name, value = feature.rsplit('_', 1)
+                    user_choice = user_selections.get(base_feature_name)
+                    final_model_inputs[feature] = 1 if user_choice == value else 0
+                except ValueError:
+                    st.warning(f"Format fitur '{feature}' tidak dikenali. Diatur ke 0.")
+                    final_model_inputs[feature] = 0
             
-            # Cek apakah pilihan pengguna cocok dengan nilai fitur saat ini
-                user_choice = user_selections.get(base_feature_name)
-                final_model_inputs[feature] = 1 if user_choice == value else 0
-            except ValueError:
-            # Safety net jika ada fitur cat__ lain yang tidak sesuai format
-                st.warning(f"Format fitur '{feature}' tidak dikenali. Diatur ke 0.")
+            # Safety net untuk fitur tak dikenal
+            else:
                 final_model_inputs[feature] = 0
-            
-        else:
-            final_model_inputs[feature] = 0 # Safety net untuk fitur tak dikenal
 
-# Buat input array (sudah benar)
-    input_array = np.array([final_model_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
-     
+        # Buat input array
+        input_array = np.array([final_model_inputs[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
+        
         # Prediksi
         prediction = model.predict(input_array)
         prediction_proba = model.predict_proba(input_array)
@@ -131,5 +127,3 @@ if model:
         else:
             st.success("✅ Aktivitas Jaringan Terlihat Normal.", icon="👍")
             st.metric("Tingkat Kepercayaan Normal", f"{prediction_proba[0][0]*100:.2f}%")
-else:
-    st.error("Aplikasi tidak bisa berjalan. Periksa log di atas.")
