@@ -40,7 +40,7 @@ PROTOCOL_OPTIONS = ["TCP", "UDP", "ICMP"]
 ENCRYPTION_OPTIONS = ["AES", "DES", "None"]
 
 # --- DEBUG FLAG ---
-DEBUG_MODE = False # Set ke False jika sudah tidak debugging
+DEBUG_MODE = True # Set ke False jika sudah tidak debugging
 
 # ======================================================================================
 # FUNGSI UNTUK MEMUAT MODEL
