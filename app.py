@@ -8,14 +8,14 @@ import seaborn as sns
 # ======================================================================================
 # KONFIGURASI PUSAT
 # ======================================================================================
-MODEL_FILENAME = 'best_random_forest_model (1).pkl'
+MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
 FEATURE_ORDER = [
     'num__login_attempts', 'num__failed_logins', 'num__ip_reputation_score',
     'num__network_packet_size', 'cat__unusual_time_access', 'cat__browser_type_Chrome',
     'cat__browser_type_Firefox', 'cat__browser_type_Edge', 'cat__browser_type_Safari',
     'cat__browser_type_Unknown', 'cat__protocol_type_TCP', 'cat__protocol_type_UDP',
     'cat__protocol_type_ICMP', 'cat__encryption_used_AES', 'cat__encryption_used_DES',
-    'cat__encryption_used_None', '17', '18', '19', '20'
+    'cat__encryption_used_None'
 ]
 ORIGINAL_NUMERIC_FEATURES = [
     'num__login_attempts', 'num__failed_logins',
