@@ -290,10 +290,10 @@ if model:
                                 st.subheader("Visualisasi Hasil:")
                                 st.write("Perbandingan Status Deteksi:")
                                 data_grafik_status_df = pd.DataFrame({
-                                    'Status': ['Terancam', 'Aman'],
-                                    'Jumlah': [jumlah_terancam, jumlah_aman]
+                                    'Terancam': [jumlah_terancam],
+                                    'Aman': [jumlah_aman]
                                 })
-                                st.bar_chart(data_grafik_status_df.set_index('Status'), color=["#FF4B4B", "#3DDC97"])
+                                st.bar_chart(data_grafik_status_df, color=["#FF4B4B", "#3DDC97"])
 
                                 if jumlah_terancam > 0:
                                     st.write("Distribusi Probabilitas Ancaman (%) untuk Data Terancam:")
