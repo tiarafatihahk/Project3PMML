@@ -15,7 +15,7 @@ FEATURE_ORDER = [
     'cat__browser_type_Firefox', 'cat__browser_type_Edge', 'cat__browser_type_Safari',
     'cat__browser_type_Unknown', 'cat__protocol_type_TCP', 'cat__protocol_type_UDP',
     'cat__protocol_type_ICMP', 'cat__encryption_used_AES', 'cat__encryption_used_DES',
-    'cat__encryption_used_None','17','18','19','20'
+    'cat__encryption_used_None'
 ]
 ORIGINAL_NUMERIC_FEATURES = [
     'num__login_attempts', 'num__failed_logins',
