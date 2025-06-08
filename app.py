@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 # ======================================================================================
 # KONFIGURASI PUSAT
 # ======================================================================================
-MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
-SCALER_FILENAME = 'scaler (1).pkl'
+MODEL_FILENAME = 'model_final.pkl'
+SCALER_FILENAME = 'scaler_final.pkl'
 
 FEATURE_ORDER = [
     'network_packet_size', 'login_attempts', 'ip_reputation_score', 'failed_logins',
