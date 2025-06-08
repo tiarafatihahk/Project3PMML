@@ -8,7 +8,7 @@ import seaborn as sns
 # ======================================================================================
 # KONFIGURASI PUSAT
 # ======================================================================================
-MODEL_FILENAME = 'best_random_forest_model (1).pkl'
+MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
 FEATURE_ORDER = [
     'num__login_attempts', 'num__failed_logins', 'num__ip_reputation_score',
     'num__network_packet_size', 'cat__unusual_time_access', 'cat__browser_type_Chrome',
