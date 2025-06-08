@@ -104,7 +104,7 @@ def model_prediksi_ancaman_dataset(model, df_processed):
 # ANTARMUKA PENGGUNA (UI)
 # ======================================================================================
 st.set_page_config(page_title="IDS Dashboard", layout="wide", page_icon="🛡️")
-st.title("🛡️ Dashboard Intrusion Detection System (IDS)")
+st.title("🛡️ Dashboard E-Commerce Intrusion Detection System (IDS)")
 
 # --- Muat Model dan Scaler ---
 model = load_model(MODEL_FILENAME)
