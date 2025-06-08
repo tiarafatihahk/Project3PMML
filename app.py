@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # ======================================================================================
 # KONFIGURASI PUSAT
 # ======================================================================================
-MODEL_FILENAME = 'best_random_forest_model (1).pkl'
+MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
 
 # DAFTAR FITUR YANG DIPERBAIKI: Menggunakan 'unencrypted'
 FEATURE_ORDER = [
