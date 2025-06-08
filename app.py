@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 # KONFIGURASI PUSAT
 # ======================================================================================
 MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
-SCALER_FILENAME = 'scaler.pkl' # <-- FILE BARU
+SCALER_FILENAME = 'scaler.pkl'
 
-# Daftar fitur dengan urutan yang benar (sesuaikan jika perlu dari check_model.py)
+# Urutan fitur harus sama persis dengan saat pelatihan model
 FEATURE_ORDER = [
     'network_packet_size', 'login_attempts', 'ip_reputation_score', 'failed_logins',
     'unusual_time_access', 'browser_type_Chrome', 'browser_type_Edge', 'browser_type_Firefox',
@@ -53,38 +53,55 @@ def load_scaler(scaler_path):
     return joblib.load(scaler_path)
 
 # ======================================================================================
-# FUNGSI PRA-PEMROSESAN DATA (FINAL DENGAN SCALER)
+# FUNGSI PRA-PEMROSESAN DATA (DIREVISI AGAR LEBIH ROBUST)
 # ======================================================================================
 def preprocess_dataframe(df_input, scaler):
-    # Buat salinan untuk menghindari mengubah dataframe asli
     df = df_input.copy()
+    processed_rows = []
 
-    # 1. Proses Fitur Numerik
-    df_numeric = df[NUMERIC_FEATURES]
-    df_numeric_scaled = scaler.transform(df_numeric)
-    df_scaled = pd.DataFrame(df_numeric_scaled, columns=NUMERIC_FEATURES, index=df.index)
-
-    # 2. Proses Fitur Kategorikal
-    # Inisialisasi DataFrame untuk fitur kategorikal yang sudah di-encode
-    df_categorical_processed = pd.DataFrame(index=df.index)
-
-    df_categorical_processed['unusual_time_access'] = df[INPUT_COL_UNUSUAL_TIME].apply(lambda x: 1 if x == "Ya" else 0)
+    # Scaling dilakukan sekali di awal untuk efisiensi
+    # Pastikan semua kolom numerik ada sebelum scaling
+    for col in NUMERIC_FEATURES:
+        if col not in df.columns:
+            df[col] = 0 # Jika kolom numerik hilang, isi dengan 0
     
-    for option in BROWSER_OPTIONS:
-        df_categorical_processed[f'browser_type_{option}'] = df[INPUT_COL_BROWSER].apply(lambda x: 1 if x == option else 0)
-    
-    for option in PROTOCOL_OPTIONS:
-        df_categorical_processed[f'protocol_type_{option}'] = df[INPUT_COL_PROTOCOL].apply(lambda x: 1 if x == option else 0)
+    numeric_data = df[NUMERIC_FEATURES]
+    scaled_numeric_data = scaler.transform(numeric_data)
+    df_scaled = pd.DataFrame(scaled_numeric_data, columns=NUMERIC_FEATURES, index=df.index)
 
-    user_choice_encryption = df[INPUT_COL_ENCRYPTION].apply(lambda x: "unencrypted" if x == "None" else x)
-    for option in ENCRYPTION_OPTIONS:
-        df_categorical_processed[f"encryption_used_{option}"] = user_choice_encryption.apply(lambda x: 1 if x == option else 0)
+    # Iterasi per baris untuk memproses fitur dengan aman
+    for i, row in df.iterrows():
+        final_model_inputs = {}
+        
+        # 1. Ambil nilai numerik yang sudah di-scale untuk baris ini
+        scaled_row = df_scaled.loc[i]
+        final_model_inputs.update(scaled_row.to_dict())
 
-    # 3. Gabungkan kembali fitur numerik (sudah di-scale) dan kategorikal
-    df_combined = pd.concat([df_scaled, df_categorical_processed], axis=1)
+        # 2. Proses fitur kategorikal satu per satu menggunakan .get() untuk keamanan
+        #    Jika kolom tidak ada di file upload, .get() akan menggunakan nilai default.
+        
+        # FIX UNTUK 'unusual_time_access'
+        unusual_time_val = row.get(INPUT_COL_UNUSUAL_TIME, "Tidak") # Default "Tidak" jika kolom hilang
+        final_model_inputs['unusual_time_access'] = 1 if unusual_time_val == "Ya" else 0
 
-    # 4. Pastikan semua kolom ada dan dalam urutan yang benar
-    df_processed = df_combined.reindex(columns=FEATURE_ORDER, fill_value=0)
+        browser_val = row.get(INPUT_COL_BROWSER, "Unknown")
+        for option in BROWSER_OPTIONS:
+            final_model_inputs[f'browser_type_{option}'] = 1 if browser_val == option else 0
+
+        protocol_val = row.get(INPUT_COL_PROTOCOL, "TCP")
+        for option in PROTOCOL_OPTIONS:
+            final_model_inputs[f'protocol_type_{option}'] = 1 if protocol_val == option else 0
+        
+        encryption_val = row.get(INPUT_COL_ENCRYPTION, "None")
+        encryption_mapped = "unencrypted" if encryption_val == "None" else encryption_val
+        for option in ENCRYPTION_OPTIONS:
+            final_model_inputs[f"encryption_used_{option}"] = 1 if encryption_mapped == option else 0
+
+        processed_rows.append(final_model_inputs)
+
+    # Buat DataFrame final, pastikan semua kolom ada dan dalam urutan yang benar
+    df_processed = pd.DataFrame(processed_rows)
+    df_processed = df_processed.reindex(columns=FEATURE_ORDER, fill_value=0)
     
     return df_processed
 
@@ -107,11 +124,10 @@ def model_prediksi_ancaman_dataset(model, df_processed):
 st.set_page_config(page_title="IDS Dashboard", layout="wide", page_icon="🛡️")
 st.title("🛡️ Intrusion Detection System (IDS) Dashboard")
 
-# Muat model DAN scaler
 model = load_model(MODEL_FILENAME)
 scaler = load_scaler(SCALER_FILENAME)
 
-if model and scaler: # <-- Pastikan keduanya berhasil dimuat
+if model and scaler:
     st.sidebar.header("Unggah Dataset Aktivitas Jaringan")
     uploaded_file = st.sidebar.file_uploader("Pilih file CSV (pemisah ';') atau Excel", type=["csv", "xlsx", "xls"])
     
@@ -123,7 +139,6 @@ if model and scaler: # <-- Pastikan keduanya berhasil dimuat
 
             if st.button("🚀 Jalankan Analisis", type="primary", use_container_width=True):
                 with st.spinner("Menganalisis data... ⏳"):
-                    # Kirim scaler ke fungsi preprocess
                     df_processed_for_model = preprocess_dataframe(df_input_original, scaler)
                     df_prediksi_hasil = model_prediksi_ancaman_dataset(model, df_processed_for_model)
 
@@ -131,9 +146,19 @@ if model and scaler: # <-- Pastikan keduanya berhasil dimuat
                         df_tampilan_akhir = pd.concat([df_input_original.reset_index(drop=True), df_prediksi_hasil.reset_index(drop=True)], axis=1)
                         st.subheader("📊 Hasil Analisis Lengkap")
                         st.dataframe(df_tampilan_akhir, use_container_width=True)
-                        # ... (Sisa kode untuk metrik dan visualisasi bisa ditambahkan di sini) ...
+                        
+                        st.subheader("📈 Ringkasan dan Statistik Hasil Analisis")
+                        jumlah_total_data = len(df_tampilan_akhir)
+                        jumlah_terancam = len(df_tampilan_akhir[df_tampilan_akhir['Status Deteksi'] == 'Terancam'])
+                        jumlah_aman = jumlah_total_data - jumlah_terancam
+                        
+                        col1, col2, col3 = st.columns(3)
+                        col1.metric(label="Total Data Dianalisis", value=f"{jumlah_total_data}")
+                        col2.metric(label="🚨 Data Terdeteksi Ancaman", value=f"{jumlah_terancam}")
+                        col3.metric(label="✅ Data Terdeteksi Aman", value=f"{jumlah_aman}")
+
         except Exception as e:
             st.error(f"Terjadi kesalahan: {e}")
             st.exception(e)
 else:
-    st.warning("Gagal memuat model dan/atau scaler. Pastikan file .pkl ada di folder yang benar.")
+    st.warning("Gagal memuat model dan/atau scaler. Pastikan file `best_random_forest_model (1).pkl` dan `scaler.pkl` ada di folder yang benar.")
