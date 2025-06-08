@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # ======================================================================================
 # KONFIGURASI PUSAT
 # ======================================================================================
-MODEL_FILENAME = 'best_random_forest_model (1).pkl'
+MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
 
 # DAFTAR FITUR YANG DIPERBAIKI: Tanpa awalan 'num__' atau 'cat__'
 # Ini harus cocok dengan fitur yang digunakan saat model dilatih.
