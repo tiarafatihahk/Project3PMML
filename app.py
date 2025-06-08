@@ -11,15 +11,28 @@ import matplotlib.pyplot as plt
 # ======================================================================================
 MODEL_FILENAME = 'best_random_forest_model (2) try.pkl'
 
-# DAFTAR FITUR YANG DIPERBAIKI: Menggunakan 'unencrypted'
+# DAFTAR FITUR DENGAN URUTAN YANG DIPERBAIKI (berdasarkan indeks dari screenshot)
+# PERINGATAN: Daftar ini mungkin tidak lengkap jika model Anda memiliki lebih dari 16 fitur.
+# Cara paling pasti adalah menggunakan skrip check_model.py
 FEATURE_ORDER = [
-    'login_attempts', 'failed_logins', 'ip_reputation_score',
-    'network_packet_size', 'unusual_time_access', 'browser_type_Chrome',
-    'browser_type_Firefox', 'browser_type_Edge', 'browser_type_Safari',
-    'browser_type_Unknown', 'protocol_type_TCP', 'protocol_type_UDP',
-    'protocol_type_ICMP', 'encryption_used_AES', 'encryption_used_DES',
-    'encryption_used_unencrypted'  # <- PERBAIKAN 1
+    'network_packet_size',      # Indeks 0
+    'login_attempts',           # Indeks 1
+    'ip_reputation_score',      # Indeks 2
+    'failed_logins',            # Indeks 3
+    'unusual_time_access',      # Indeks 4
+    'browser_type_Chrome',      # Indeks 5
+    'browser_type_Edge',        # Indeks 6
+    'browser_type_Firefox',     # Indeks 7
+    'browser_type_Safari',      # Indeks 8
+    'browser_type_Unknown',     # Indeks 9
+    'protocol_type_ICMP',       # Indeks 10
+    'protocol_type_TCP',        # Indeks 11
+    'protocol_type_UDP',        # Indeks 12
+    'encryption_used_AES',      # Indeks 13
+    'encryption_used_DES',      # Indeks 14
+    'encryption_used_unencrypted' # Indeks 15
 ]
+
 
 # NAMA KOLOM INPUT: Dibiarkan sederhana
 INPUT_COL_LOGIN_ATTEMPTS = 'login_attempts'
@@ -31,10 +44,10 @@ INPUT_COL_BROWSER = 'browser_type'
 INPUT_COL_PROTOCOL = 'protocol_type'
 INPUT_COL_ENCRYPTION = 'encryption_used'
 
-# Opsi untuk fitur kategorikal (DIPERBAIKI)
+# Opsi untuk fitur kategorikal
 BROWSER_OPTIONS = ["Chrome", "Firefox", "Edge", "Safari", "Unknown"]
 PROTOCOL_OPTIONS = ["TCP", "UDP", "ICMP"]
-ENCRYPTION_OPTIONS = ["AES", "DES", "unencrypted"] # <- PERBAIKAN 2
+ENCRYPTION_OPTIONS = ["AES", "DES", "unencrypted"]
 
 # --- DEBUG FLAG ---
 DEBUG_MODE = False
@@ -55,20 +68,16 @@ def load_model(model_path):
         return None
 
 # ======================================================================================
-# FUNGSI UNTUK PRA-PEMROSESAN DATASET (DIPERBAIKI)
+# FUNGSI UNTUK PRA-PEMROSESAN DATASET
 # ======================================================================================
 def preprocess_dataframe(df_input):
     processed_rows = []
     for i, row in df_input.iterrows():
         final_model_inputs = {}
-
-        # 1. Fitur Numerik
         final_model_inputs['login_attempts'] = row.get(INPUT_COL_LOGIN_ATTEMPTS, 0)
         final_model_inputs['failed_logins'] = row.get(INPUT_COL_FAILED_LOGINS, 0)
         final_model_inputs['ip_reputation_score'] = row.get(INPUT_COL_IP_REPUTATION, 0)
         final_model_inputs['network_packet_size'] = row.get(INPUT_COL_PACKET_SIZE, 0)
-
-        # 2. Fitur Kategorikal
         final_model_inputs['unusual_time_access'] = 1 if row.get(INPUT_COL_UNUSUAL_TIME, "Tidak") == "Ya" else 0
         
         user_choice_browser = row.get(INPUT_COL_BROWSER, "Unknown")
@@ -79,7 +88,6 @@ def preprocess_dataframe(df_input):
         for option in PROTOCOL_OPTIONS:
             final_model_inputs[f"protocol_type_{option}"] = 1 if user_choice_protocol == option else 0
 
-        # encryption_used (DENGAN LOGIKA PEMETAAN - PERBAIKAN 3)
         user_choice_encryption = row.get(INPUT_COL_ENCRYPTION, "None")
         if user_choice_encryption == "None":
             user_choice_encryption = "unencrypted"
@@ -89,6 +97,7 @@ def preprocess_dataframe(df_input):
         
         processed_rows.append(final_model_inputs)
 
+    # DataFrame akan dibuat dengan urutan kolom yang benar sesuai FEATURE_ORDER di atas
     df_processed = pd.DataFrame(processed_rows, columns=FEATURE_ORDER)
     df_processed.fillna(0, inplace=True)
     return df_processed
